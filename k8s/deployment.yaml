@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: hotel-data
+  name: hotel-data
+  namespace: hotel
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      annotations:
+        updatedTimestamp: Sat Dec 28 11:16:15 +07 2019
+      labels:
+        app: hotel-data
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: Exists
+            weight: 100 
+      containers:
+      - name: hotel-data
+        image: dugiahuy/hotel:latest
+        resources:
+          limits:
+            cpu: "250m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        envFrom:
+        - secretRef:
+            name: hotel-data
+        imagePullPolicy: Always
+      restartPolicy: Always

@@ -2,62 +2,43 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/dugiahuy/hotel-data-merge/src/db"
 	"github.com/dugiahuy/hotel-data-merge/src/delivery/rest"
+	hotelRest "github.com/dugiahuy/hotel-data-merge/src/delivery/rest/handler/hotel"
+	updaterRest "github.com/dugiahuy/hotel-data-merge/src/delivery/rest/handler/updater"
+	"github.com/dugiahuy/hotel-data-merge/src/repository"
+	"github.com/dugiahuy/hotel-data-merge/src/usecase/hotel"
 	"github.com/dugiahuy/hotel-data-merge/src/usecase/updater"
-	urest "github.com/dugiahuy/hotel-data-merge/src/delivery/rest/updater"
 )
+
+const requestTimeout = 20 * time.Second
 
 func main() {
 	errs := make(chan error)
 
-	var logger *zap.Logger
-	switch os.Getenv("ENV") {
-	case "local":
-		atom := zap.NewAtomicLevel()
-		encoderCfg := zap.NewProductionEncoderConfig()
-		encoderCfg.TimeKey = "timestamp"
-		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
-		encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		logger = zap.New(zapcore.NewCore(
-			zapcore.NewConsoleEncoder(encoderCfg),
-			zapcore.Lock(os.Stdout),
-			atom,
-		), zap.AddCaller())
-
-	default:
-		logger, _ = zap.NewProduction()
-	}
+	logger := newLogger(os.Getenv("ENV"))
 	defer logger.Sync()
 
-	db, err := db.GetDB(
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASS"),
-		os.Getenv("DB_NAME"),
-	)
-	if err != nil {
-		logger.Fatal("cannot start db", zap.Error(err))
-		log.Printf("db: could not connect to mongodb on %v", os.Getenv("MONGO_HOST"))
-		errs <- err
-	}
-
 	// Start webserver
-	r := rest.NewRouter(db, logger)
+	r := rest.NewRouter(logger)
 
-	uc := updater.New(logger)
-	urest.NewUpdaterHandler(r, uc)
+	hotelRepo := repository.NewStorage()
 
-	httpAddr := ":8000"
+	updaterUsecase := updater.New(hotelRepo, logger)
+	updaterRest.NewHandler(r, updaterUsecase)
+
+	hotelUsecase := hotel.New(hotelRepo, requestTimeout)
+	hotelRest.NewHandler(r, hotelUsecase)
+
+	httpAddr := ":8080"
 	if os.Getenv("PORT") != "" {
 		httpAddr = ":" + os.Getenv("PORT")
 	}
@@ -74,4 +55,26 @@ func main() {
 	}()
 
 	logger.Info("terminated", zap.Any("err", <-errs))
+}
+
+func newLogger(env string) *zap.Logger {
+	var logger *zap.Logger
+	switch env {
+	case "local":
+		atom := zap.NewAtomicLevel()
+		encoderCfg := zap.NewProductionEncoderConfig()
+		encoderCfg.TimeKey = "timestamp"
+		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		logger = zap.New(zapcore.NewCore(
+			zapcore.NewConsoleEncoder(encoderCfg),
+			zapcore.Lock(os.Stdout),
+			atom,
+		), zap.AddCaller())
+
+	default:
+		logger, _ = zap.NewProduction()
+	}
+
+	return logger
 }

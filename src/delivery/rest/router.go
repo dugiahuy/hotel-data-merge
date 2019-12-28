@@ -9,7 +9,6 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -21,12 +20,12 @@ var authPath = []string{
 }
 
 // NewRouter -- Create router for web server
-func NewRouter(db *mongo.Database, log *zap.Logger) *echo.Echo {
+func NewRouter(log *zap.Logger) *echo.Echo {
 	// Default router
 	r := echo.New()
 	r.HTTPErrorHandler = customHTTPErrorHandler
 
-	// middleware
+	// Middleware
 	{
 		r.Pre(middleware.RemoveTrailingSlash())
 		r.Use(corsConfig())

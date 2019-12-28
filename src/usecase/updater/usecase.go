@@ -3,22 +3,16 @@ package updater
 import (
 	"go.uber.org/zap"
 
-	"github.com/dugiahuy/hotel-data-merge/src/model"
+	"github.com/dugiahuy/hotel-data-merge/src/repository"
 )
 
 type Usecase interface {
-	CollectData() ([]model.Hotel, error)
+	CollectData() error
 }
 
-// func New(r repository.HotelRepo, logger *zap.Logger) Usecase {
-// 	return &usecase{
-// 		repo:   r,
-// 		logger: logger,
-// 	}
-// }
-
-func New(logger *zap.Logger) Usecase {
+func New(r repository.HotelStorage, logger *zap.Logger) Usecase {
 	return &usecase{
+		repo:   r,
 		logger: logger,
 	}
 }
