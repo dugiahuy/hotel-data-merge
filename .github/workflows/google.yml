@@ -18,33 +18,32 @@ on:
 # Environment variables available to all jobs and steps in this workflow
 env:
   GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
-  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
-  GITHUB_SHA: ${{ github.sha }}
   GKE_ZONE: asia-southeast1-b
   GKE_CLUSTER: cluster
-  IMAGE: dugiahuy/hotel
   DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+  IMAGE: dugiahuy/hotel
+  GITHUB_SHA: ${{ github.sha }}
 
 jobs:
-  build:
-    name: Build Docker container
-    runs-on: ubuntu-latest
-    steps:
+  # build:
+  #   name: Build Docker container
+  #   runs-on: ubuntu-latest
+  #   steps:
 
-    - uses: actions/checkout@v1
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag $IMAGE:latest
+  #   - uses: actions/checkout@v1
+  #   - name: Build the Docker image
+  #     run: docker build . --file Dockerfile --tag $IMAGE:latest
       
-    - name: Login to Docker Hub
-      run: echo $DOCKER_PASS | base64 -d  | docker login -u dugiahuy --password-stdin
+  #   - name: Login to Docker Hub
+  #     run: printf $DOCKER_PASS | base64 -d  | docker login -u dugiahuy --password-stdin
 
-    - name: Push image to Docker Hub
-      run: | 
-        docker tag $IMAGE $IMAGE
-        docker push $IMAGE
+  #   - name: Push image to Docker Hub
+  #     run: | 
+  #       docker tag $IMAGE $IMAGE
+  #       docker push $IMAGE
         
   deploy:
-    needs: build
+    # needs: build
     name: Deploy to GKE
     runs-on: ubuntu-latest
     steps:
@@ -57,17 +56,18 @@ jobs:
         version: '270.0.0'
         service_account_key: ${{ secrets.GKE_KEY }}
 
-    - name: Set up Kustomize
-      run: |
-        curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
-        chmod u+x ./kustomize
+    # - name: Set up Kustomize
+    #   run: |
+    #     curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+    #     chmod u+x ./kustomize
+    #     sudo mv ./kustomize /usr/local/bin/kustomize
 
     - name: Deploy
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
+        cd k8s
         sed -i 's/{{UPDATED_TS}}/'$(date | sed 's/ /-/g' | sed 's/:/-/g')'/g' deployment.yaml
         sed -i 's/{{TAG}}/'latest'/g' deployment.yaml
-        ./kustomize edit set image $IMAGE:${GITHUB_SHA}
-        ./kustomize build . | kubectl apply -f -
+        kubectl apply -f .
         kubectl rollout status deployment/hotel-data -n hotel
         kubectl get services -o wide -n hotel
