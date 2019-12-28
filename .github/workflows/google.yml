@@ -36,7 +36,7 @@ jobs:
       run: docker build . --file Dockerfile --tag $IMAGE:latest
       
     - name: Login to Docker Hub
-      run: printf $DOCKER_PASS | base64 -d  | docker login -u dugiahuy --password-stdin
+      run: echo $DOCKER_PASS | base64 -d  | docker login -u dugiahuy --password-stdin
 
     - name: Push image to Docker Hub
       run: | 
@@ -44,6 +44,7 @@ jobs:
         docker push $IMAGE
         
   deploy:
+    needs: build
     name: Deploy to GKE
     runs-on: ubuntu-latest
     steps:
