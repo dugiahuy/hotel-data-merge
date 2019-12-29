@@ -51,12 +51,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+    - name: Login to GKE
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
         version: '270.0.0'
         service_account_key: ${{ secrets.GKE_KEY }}
 
-    - name: Deploy
+    - name: Deploy to GKE
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
         cd k8s

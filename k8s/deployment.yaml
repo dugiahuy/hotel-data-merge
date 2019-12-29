@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       annotations:
-        updatedTimestamp: Sat Dec 28 11:16:15 +07 2019
+        updatedTimestamp: {{UPDATED_TS}}
       labels:
         app: hotel-data
     spec:
@@ -30,7 +30,7 @@ spec:
             weight: 100 
       containers:
       - name: hotel-data
-        image: dugiahuy/hotel:latest
+        image: dugiahuy/hotel:{{TAG}}
         resources:
           limits:
             cpu: "250m"
@@ -38,18 +38,6 @@ spec:
           requests:
             cpu: "100m"
             memory: "128Mi"
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 20
         envFrom:
         - secretRef:
             name: hotel-data
