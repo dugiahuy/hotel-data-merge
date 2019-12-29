@@ -24,3 +24,33 @@ This project has 4 Layer:
 
 ## Architecture Diagram
 ![](./docs/architecture.png)
+
+## Development
+
+### Running the project
+```
+$ make dev
+```
+
+### API Endpoint
+#### Fetch Hotels
+`GET /hotels/`
+```
+$ curl -i -H 'Accept: application/json' https://hotel.fista.dev/hotels/
+```
+#### Get Hotel By ID
+`GET /hotels/:id/`
+```
+$ curl -i -H 'Accept: application/json' https://hotel.fista.dev/hotels/iJhz
+```
+#### Get Hotel By Destination ID
+`GET /hotels/destination/:id`
+```
+$ curl -i -H 'Accept: application/json' https://hotel.fista.dev/hotels/desination/5432
+```
+#### Update Hotels Data
+`GET /updater`
+```
+$ curl -i -H 'Authorization: Bearer {{TOKEN}}' https://hotel.fista.dev/updater
+```
+
