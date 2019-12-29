@@ -4,7 +4,7 @@ metadata:
   name: hotel-hourly-update-data
   namespace: hotel
 spec:
-  schedule: "1 */1 * * *"
+  schedule: "20 */1 * * *"
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 1
   jobTemplate:
@@ -20,5 +20,5 @@ spec:
             - /bin/sh
             - -c
             - |
-              curl -X POST --fail --header "authorization: Bearer {{TOKEN}}" http://hotel-data/updater
+              curl -X GET --fail --header "Authorization: Bearer {{TOKEN}}" http://hotel-data/updater
           restartPolicy: Never
