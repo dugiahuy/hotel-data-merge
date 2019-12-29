@@ -19,8 +19,17 @@ func NewHandler(e *echo.Echo, us hotel.Usecase) {
 		usecase: us,
 	}
 
+	e.GET("/hotels", handler.Fetch)
 	e.GET("/hotels/:id", handler.Get)
 	e.GET("/hotels/destination/:id", handler.GetByDestination)
+}
+
+func (h *hotelHandler) Fetch(c echo.Context) error {
+	hotels, err := h.usecase.Fetch()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, hotels)
 }
 
 func (h *hotelHandler) Get(c echo.Context) error {

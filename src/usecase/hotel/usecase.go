@@ -8,6 +8,7 @@ import (
 )
 
 type Usecase interface {
+	Fetch() (model.Hotels, error)
 	Get(id string) (*model.Hotel, error)
 	GetByDestination(id int64) ([]model.Hotel, error)
 }

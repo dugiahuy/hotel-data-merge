@@ -12,6 +12,10 @@ type usecase struct {
 	timeout time.Duration
 }
 
+func (u *usecase) Fetch() (model.Hotels, error) {
+	return u.repo.Fetch()
+}
+
 func (u *usecase) Get(id string) (*model.Hotel, error) {
 	return u.repo.Get(id)
 }
