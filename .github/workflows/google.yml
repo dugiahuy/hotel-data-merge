@@ -23,6 +23,7 @@ env:
   DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
   IMAGE: dugiahuy/hotel
   GITHUB_SHA: ${{ github.sha }}
+  API_TOKEN: ${{ secrets.API_TOKEN }}
 
 jobs:
   build:
@@ -62,7 +63,8 @@ jobs:
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
         cd k8s
         sed -i 's/{{UPDATED_TS}}/'$(date | sed 's/ /-/g' | sed 's/:/-/g')'/g' deployment.yaml
-        sed -i 's/{{TAG}}/'latest'/g' deployment.yaml
+        sed -i 's/{{TAG}}/'$GITHUB_SHA'/g' deployment.yaml
+        sed -i 's/{{TOKEN}}/'$API_TOKEN'/g' cronjob.yaml
         kubectl apply -f .
         kubectl rollout status deployment/hotel-data -n hotel
         kubectl get services -o wide -n hotel
