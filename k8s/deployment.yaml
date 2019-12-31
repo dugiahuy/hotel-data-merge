@@ -33,10 +33,10 @@ spec:
         image: dugiahuy/hotel:{{TAG}}
         resources:
           limits:
-            cpu: "250m"
+            cpu: "50m"
             memory: "512Mi"
           requests:
-            cpu: "100m"
+            cpu: "50m"
             memory: "128Mi"
         envFrom:
         - secretRef:
