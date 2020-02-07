@@ -123,12 +123,13 @@ func mergeMaps(maps ...map[string]interface{}) model.Hotel {
 					}
 				}
 			case "name", "address", "country", "city":
-				if v, ok := val.(string); ok {
-					v = sanitize(v, paragraph, true)
-					if merged[key] == nil || len(v) > len(merged[key].(string)) {
-						merged[key] = v
-					}
-				}
+				merged[key] = mergeMapsName(merged[key], val.(string))
+				// if v, ok := val.(string); ok {
+				// 	v = sanitize(v, paragraph, true)
+				// 	if merged[key] == nil || len(v) > len(merged[key].(string)) {
+				// 		merged[key] = v
+				// 	}
+				// }
 			case "description":
 				if v, ok := val.(string); ok {
 					v = sanitize(v, paragraph, false)
@@ -190,6 +191,14 @@ func mergeMaps(maps ...map[string]interface{}) model.Hotel {
 
 	var hotel model.Hotel
 	mapstructure.Decode(merged, &hotel)
-
 	return hotel
+}
+
+func mergeMapsName(mapVal interface{}, input string) string {
+	input = sanitize(input, paragraph, true)
+	if mapVal == nil || len(input) > len(mapVal.(string)) {
+		return input
+	}
+
+	return mapVal.(string)
 }
